@@ -8,7 +8,7 @@
   ### Examples
   Each slide must be within a paper-slide tag, but other than that you have complete control.
 
-      <l2t-paper-slider>
+      <l2t-paper-slider total-slides="4">
         <paper-slide>#1</paper-slide>
         <paper-slide>#2</paper-slide>
         <paper-slide>#3</paper-slide>
@@ -114,12 +114,12 @@ Custom property | Description | Default
         width: auto;
       }
       .slider__indicator--left {
-        -webkit-transition: left .3s cubic-bezier(.51, .92, .24, 1.15), right .3s .1s cubic-bezier(.51, .92, .24, 1.15);
-        transition: left .3s cubic-bezier(.51, .92, .24, 1.15), right .3s .1s cubic-bezier(.51, .92, .24, 1.15);
+        -webkit-transition: left .3s cubic-bezier(.51, .92, .24, 1.15), right .1s cubic-bezier(.51, .92, .24, 1.15);
+        transition: left .3s cubic-bezier(.51, .92, .24, 1.15), right .1s cubic-bezier(.51, .92, .24, 1.15);
       }
       .slider__indicator--right {
-        -webkit-transition: left .3s .1s cubic-bezier(.51, .92, .24, 1.15), right .3s cubic-bezier(.51, .92, .24, 1.15);
-        transition: left .3s .1s cubic-bezier(.51, .92, .24, 1.15), right .3s cubic-bezier(.51, .92, .24, 1.15);
+        -webkit-transition: left .3s cubic-bezier(.51, .92, .24, 1.15), right .1s cubic-bezier(.51, .92, .24, 1.15);
+        transition: left .3s cubic-bezier(.51, .92, .24, 1.15), right .1s cubic-bezier(.51, .92, .24, 1.15);
       }
       .slider {
         width: var(--paper-slide-width, 100%);
@@ -288,10 +288,11 @@ Custom property | Description | Default
         *
         * @attribute total-slides
         * @type Number
-        * @default NULL
+        * @default 1
         */
         totalSlides: {
           type: Number,
+          value: 1,
           notify: true,
           reflectToAttribute: true,
           observer: '_reInit'
@@ -357,15 +358,6 @@ Custom property | Description | Default
             this$.moveNext();
           }, (this$.slideDuration * 1000));
         });
-      },
-      /**
-      * Count the slides,
-      * and set totalSlides
-      *
-      */
-      _countSlides: function() {
-        let deep = Polymer.version>="2"?this:this.$.container;
-        this.totalSlides = deep.querySelectorAll("paper-slide").length;
       },
       /**
       * Create the nav dots,
@@ -550,9 +542,19 @@ Custom property | Description | Default
       *
       */
       moveNext: function() {
-        var currentPos = parseInt(this.$.container.getAttribute('data-pos')),
-            nextPos = currentPos < (this.totalSlides - 1) ? (currentPos+1) : 0;
-        this.movePos(nextPos);
+        var currentPos = parseInt(this.$.container.getAttribute('data-pos')), nextPos;
+        if(currentPos < (this.totalSlides - 1)) {
+          nextPos = currentPos+1;
+          this.movePos(nextPos);
+        }
+        else {
+          nextPos = currentPos+1;
+          this.$.container.querySelector(".slider__slides").style.transform = "translateX(-" + 100 * nextPos + "%)";
+          nextPos = 0;
+          this.movePos(nextPos);
+        }
+        //     nextPos = currentPos < (this.totalSlides - 1) ? (currentPos+1) : 0;
+        // this.movePos(nextPos);
       },
       /**
       * Method for moving
@@ -592,7 +594,6 @@ Custom property | Description | Default
         setTimeout(function(){
           this$._moveManual();
           this$._ariaChecked();
-          this$._countSlides();
         }, 0);
 
         //allow vertical scrolling
